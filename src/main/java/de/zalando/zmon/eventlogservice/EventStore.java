@@ -7,5 +7,5 @@ import java.util.List;
  */
 public interface EventStore {
     void putEvent(Event event, String key);
-    List<Event> getEvents(String key, String value);
+    List<Event> getEvents(String key, String value, List<Integer> types, int limit);
 }

@@ -1,12 +1,13 @@
 package de.zalando.zmon.eventlogservice;
 
-import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,9 +23,52 @@ public class CassandraStore implements EventStore {
     private final String keyspace;
 
     private final Cluster cluster;
+    private final Session session;
+
+    private PreparedStatement getByAlertId;
+    private PreparedStatement getByCheckId;
+
+    private PreparedStatement putByAlertId;
+    private PreparedStatement putByCheckId;
+
+    private void setupCassandra() {
+        ResultSet rs = session.execute("SELECT * FROM system.schema_keyspaces WHERE keyspace_name = 'eventlog'");
+        List<Row> rows = rs.all();
+        if(rows.size()==0) {
+            LOG.info("Creating eventlog keyspace");
+            session.execute("CREATE KEYSPACE eventlog WITH replication = {'class':'SimpleStrategy', 'replication_factor': 2};");
+        }
+
+        SimpleStatement st = new SimpleStatement("select * from system.schema_columnfamilies where keyspace_name = 'eventlog' and columnfamily_name = 'events_by_alert_id';");
+        st.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM);
+        rs = session.execute(st);
+        rows = rs.all();
+        if(rows.size()==0) {
+            LOG.info("Creating table for events by alert id");
+            session.execute("CREATE TABLE eventlog.events_by_alert_id(alert_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(alert_id, created))");
+        }
+
+        st = new SimpleStatement("select * from system.schema_columnfamilies where keyspace_name = 'eventlog' and columnfamily_name = 'events_by_check_id';");
+        st.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM);
+        rs = session.execute(st);
+        rows = rs.all();
+        if(rows.size()==0) {
+            LOG.info("Creating table for events by check id");
+            session.execute("CREATE TABLE eventlog.events_by_check_id(check_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(check_id, created))");
+        }
+
+    }
+
+    private void prepareStatements() {
+        putByAlertId = session.prepare("INSERT INTO eventlog.events_by_alert_id(alert_id,created,type,entity,instance_id,data) VALUES(?,?,?,?,?,?)");
+        putByCheckId = session.prepare("INSERT INTO eventlog.events_by_check_id(check_id,created,type,entity,instance_id,data) VALUES(?,?,?,?,?,?)");
+
+        getByAlertId = session.prepare("SELECT * FROM eventlog.events_by_alert_id WHERE alert_id = ? LIMIT ? ALLOW FILTERING");
+        getByCheckId = session.prepare("SELECT * FROM eventlog.events_by_check_id WHERE check_id = ? LIMIT ? ALLOW FILTERING");
+    }
 
     @Autowired
-    public CassandraStore(@Value("${cassandra.host}") String host,@Value("${cassandra.port}") int port,@Value("${cassandra.keyspace}") String keyspace) {
+    public CassandraStore(@Value("${cassandra.host}") String host, @Value("${cassandra.port}") int port, @Value("${cassandra.keyspace}") String keyspace) {
         this.host = host;
         this.port = port;
         this.keyspace = keyspace;
@@ -34,15 +78,44 @@ public class CassandraStore implements EventStore {
         cluster = Cluster.builder()
                 .addContactPoint(host)
                 .build();
+
+        session = cluster.newSession();
+
+        setupCassandra();
+
+        prepareStatements();
     }
 
     @Override
     public void putEvent(Event event, String key) {
+        BoundStatement bst = null;
+        if("alertId".equals(key)) {
+            bst = putByAlertId.bind(Integer.parseInt(event.getAttributes().get("alertId")), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
+        }
+        else if ("checkId".equals(key)) {
+            bst = putByCheckId.bind(Integer.parseInt(event.getAttributes().get("checkId")), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
+        }
 
+        if(bst!=null) {
+            session.execute(bst);
+        }
     }
 
     @Override
-    public List<Event> getEvents(String key, String value) {
-        return null;
+    public List<Event> getEvents(String key, String value, List<Integer> types, int limit) {
+        List<Event> l = new ArrayList<>(limit);
+        if("alertId".equals(key)) {
+            BoundStatement bst = getByAlertId.bind(value, types, limit);
+            ResultSet rs = session.execute(bst);
+
+            for(Row r : rs) {
+                Event e = new Event();
+                e.setTypeId(r.getInt("type"));
+                e.setTime(r.getDate("created"));
+                e.setAttributes(r.getMap("data", String.class, String.class));
+                l.add(e);
+            }
+        }
+        return l;
     }
 }
