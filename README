@@ -1,3 +1,4 @@
-curl -X PUT localhost:8080/ -d "[{},{}]" -H "Content-Type: application/json"
 
-curl -X PUT localhost:8080/ -d "[{\"typeId\":1,\"time\":\"2014-01-01T20:00:00.000\",\"attributes\":{\"alertId\":1,\"entity\":\"elsn01:5827\"}}]" -H "Content-Type: application/json"
+curl -X PUT localhost:8080/ -d "[{\"typeId\":212993, \"time\":\"2014-01-01T20:00:00.000\",\"attributes\":{\"alertId\":1,\"entity\":\"elsn01:5827\"}}]" -H "Content-Type: application/json"
+
+curl localhost:8080/\?key=alertId\&value=1\&types=212993

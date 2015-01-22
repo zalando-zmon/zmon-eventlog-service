@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * Created by jmussler on 1/14/15.
  */
-@Service
 public class CassandraStore implements EventStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraStore.class);
@@ -45,7 +44,7 @@ public class CassandraStore implements EventStore {
         rows = rs.all();
         if(rows.size()==0) {
             LOG.info("Creating table for events by alert id");
-            session.execute("CREATE TABLE eventlog.events_by_alert_id(alert_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(alert_id, created))");
+            session.execute("CREATE TABLE eventlog.events_by_alert_id(alert_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(alert_id, created)) WITH CLUSTERING ORDER BY (created DESC);");
         }
 
         st = new SimpleStatement("select * from system.schema_columnfamilies where keyspace_name = 'eventlog' and columnfamily_name = 'events_by_check_id';");
@@ -54,7 +53,7 @@ public class CassandraStore implements EventStore {
         rows = rs.all();
         if(rows.size()==0) {
             LOG.info("Creating table for events by check id");
-            session.execute("CREATE TABLE eventlog.events_by_check_id(check_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(check_id, created))");
+            session.execute("CREATE TABLE eventlog.events_by_check_id(check_id int, created timestamp, type int, entity text, instance_id int, data map<text,text>, PRIMARY KEY(check_id, created)) WITH CLUSTERING ORDER BY (created DESC);");
         }
 
     }
@@ -63,12 +62,11 @@ public class CassandraStore implements EventStore {
         putByAlertId = session.prepare("INSERT INTO eventlog.events_by_alert_id(alert_id,created,type,entity,instance_id,data) VALUES(?,?,?,?,?,?)");
         putByCheckId = session.prepare("INSERT INTO eventlog.events_by_check_id(check_id,created,type,entity,instance_id,data) VALUES(?,?,?,?,?,?)");
 
-        getByAlertId = session.prepare("SELECT * FROM eventlog.events_by_alert_id WHERE alert_id = ? LIMIT ? ALLOW FILTERING");
-        getByCheckId = session.prepare("SELECT * FROM eventlog.events_by_check_id WHERE check_id = ? LIMIT ? ALLOW FILTERING");
+        getByAlertId = session.prepare("SELECT * FROM eventlog.events_by_alert_id WHERE alert_id = ? LIMIT ?");
+        getByCheckId = session.prepare("SELECT * FROM eventlog.events_by_check_id WHERE check_id = ? LIMIT ?");
     }
 
-    @Autowired
-    public CassandraStore(@Value("${cassandra.host}") String host, @Value("${cassandra.port}") int port, @Value("${cassandra.keyspace}") String keyspace) {
+    public CassandraStore(String host, int port, String keyspace) {
         this.host = host;
         this.port = port;
         this.keyspace = keyspace;
@@ -104,18 +102,34 @@ public class CassandraStore implements EventStore {
     @Override
     public List<Event> getEvents(String key, String value, List<Integer> types, int limit) {
         List<Event> l = new ArrayList<>(limit);
-        if("alertId".equals(key)) {
-            BoundStatement bst = getByAlertId.bind(value, types, limit);
-            ResultSet rs = session.execute(bst);
 
-            for(Row r : rs) {
-                Event e = new Event();
-                e.setTypeId(r.getInt("type"));
-                e.setTime(r.getDate("created"));
-                e.setAttributes(r.getMap("data", String.class, String.class));
-                l.add(e);
-            }
+        BoundStatement bst = null;
+        if("alertId".equals(key)) {
+            bst = getByAlertId.bind(Integer.parseInt(value), limit);
         }
+        else if ("checkId".equals(key)) {
+            bst = getByAlertId.bind(Integer.parseInt(value), limit);
+        }
+
+        if(bst==null) {
+            return l;
+        }
+
+        ResultSet rs = session.execute(bst);
+
+        for(Row r : rs) {
+            if(!types.contains(r.getInt("type"))) {
+                // sadly type IN(?) does not work with cassandra
+                continue;
+            }
+
+            Event e = new Event();
+            e.setTypeId(r.getInt("type"));
+            e.setTime(r.getDate("created"));
+            e.setAttributes(r.getMap("data", String.class, String.class));
+            l.add(e);
+        }
+
         return l;
     }
 }

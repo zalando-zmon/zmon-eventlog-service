@@ -23,9 +23,8 @@ public class EventlogController {
     EventStore storage;
 
     @RequestMapping(value="/", method=RequestMethod.GET)
-    List<Event> getEvents(@RequestParam(value="types") List<String> types, @RequestParam(value="key") String key, @RequestParam(value="value") String value)   {
-        LOG.info("Get events");
-        return null;
+    List<Event> getEvents(@RequestParam(value="types") List<Integer> types, @RequestParam(value="key") String key, @RequestParam(value="value") String value) {
+        return storage.getEvents(key, value, types, 100);
     }
 
     @RequestMapping(value="/", method=RequestMethod.PUT, consumes = "application/json")
