@@ -33,6 +33,7 @@ public class PostgresqlStore implements EventStore {
         conf.setJdbcUrl("jdbc:postgresql://"+host+":"+port+"/"+database);
         conf.setUsername(user);
         conf.setPassword(password);
+        conf.setMaximumPoolSize(12);
 
         ds = new HikariDataSource(conf);
     }
@@ -81,7 +82,6 @@ public class PostgresqlStore implements EventStore {
             Utils.appendEscapedLiteral(b,"{\""+key+"\":\""+value+"\"}", true);
             b.append("'");
 
-            LOG.info("Query: {}", b.toString());
             ResultSet rs = st.executeQuery(b.toString());
 
             List<Event> events = new ArrayList<>();

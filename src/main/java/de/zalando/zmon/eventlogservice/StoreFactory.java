@@ -22,16 +22,16 @@ public class StoreFactory {
     @Value("${cassandra.keyspace:null}")
     String cassandraKeyspace;
 
-    @Value("${postgresql.host:null}")
+    @Value("${postgresql.host:localhost}")
     String postgresqlHost;
 
-    @Value("${postgresql.port:0}")
+    @Value("${postgresql.port:5432}")
     int postgresqlPort;
 
     @Value("${postgresql.database:eventlog}")
     String postgresqlDatabase;
 
-    @Value("${postgresql.user:zmon_eventlog_service}")
+    @Value("${postgresql.user:zmon_eventlog}")
     String postgresqlUser;
 
     @Value("${postgresql.password}")
@@ -39,7 +39,7 @@ public class StoreFactory {
 
     @Bean
     EventStore getStore() {
-        if(postgresqlHost!=null) {
+        if(cassandraHost!=null) {
             return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword);
         }
         else {
