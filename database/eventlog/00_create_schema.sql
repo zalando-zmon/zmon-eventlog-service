@@ -14,7 +14,7 @@ CREATE TABLE zmon_events.events(
 );
 
 CREATE INDEX ON zmon_events.events USING gin (e_data);
-CREATE INDEX ON zmon_events.events ( e_created , e_type_id );
+CREATE INDEX ON zmon_events.events (e_created , e_type_id);
 
 INSERT INTO zmon_events.event_types VALUES (213263,'GROUP_MODIFIED'),
                                              (212994,'ALERT_ENDED'),

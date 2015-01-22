@@ -28,19 +28,22 @@ public class StoreFactory {
     @Value("${postgresql.port:5432}")
     int postgresqlPort;
 
-    @Value("${postgresql.database:eventlog}")
+    @Value("${postgresql.database:zmon_local_db}")
     String postgresqlDatabase;
 
-    @Value("${postgresql.user:zmon_eventlog}")
+    @Value("${postgresql.user:postgres}")
     String postgresqlUser;
 
     @Value("${postgresql.password}")
     String postgresqlPassword;
 
+    @Value("${postgresql.schema:zmon_eventlog}")
+    String postgresqlSchema;
+
     @Bean
     EventStore getStore() {
         if(cassandraHost!=null) {
-            return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword);
+            return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword, postgresqlSchema);
         }
         else {
             return new CassandraStore(cassandraHost, cassandraPort, cassandraKeyspace);

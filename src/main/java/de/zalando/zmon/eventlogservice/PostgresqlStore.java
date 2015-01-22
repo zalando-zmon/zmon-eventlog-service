@@ -25,17 +25,22 @@ public class PostgresqlStore implements EventStore {
     private final static Logger LOG = LoggerFactory.getLogger(PostgresqlStore.class);
 
     private final HikariDataSource ds;
+    private final String queryGet;
+    private final String queryInsert;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public PostgresqlStore(String host, int port, String database, String user, String password) {
+    public PostgresqlStore(String host, int port, String database, String user, String password, String schema) {
         HikariConfig conf = new HikariConfig();
-        conf.setJdbcUrl("jdbc:postgresql://"+host+":"+port+"/"+database);
+        conf.setJdbcUrl("jdbc:postgresql://" + host + ":" + port + "/" + database);
         conf.setUsername(user);
         conf.setPassword(password);
         conf.setMaximumPoolSize(12);
-
         ds = new HikariDataSource(conf);
+
+        queryInsert = "INSERT INTO "+schema+".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
+        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM "+schema+".events, zmon_events.event_types WHERE et_id = e_type_id AND e_data @> '";
+
     }
 
     @Override
@@ -44,7 +49,7 @@ public class PostgresqlStore implements EventStore {
 
         try {
             conn = ds.getConnection();
-            PreparedStatement st = conn.prepareStatement("INSERT INTO zmon_events.events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)");
+            PreparedStatement st = conn.prepareStatement(queryInsert);
             st.setInt(1, event.getTypeId());
             st.setTimestamp(2, new java.sql.Timestamp(event.getTime().getTime()));
             st.setInt(3, 0);
@@ -78,7 +83,7 @@ public class PostgresqlStore implements EventStore {
 
             Statement st = conn.createStatement();
             StringBuffer b = new StringBuffer();
-            b.append("SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM zmon_events.events, zmon_events.event_types WHERE et_id = e_type_id AND e_data @> '");
+            b.append(queryGet);
             Utils.appendEscapedLiteral(b,"{\""+key+"\":\""+value+"\"}", true);
             b.append("'");
 
