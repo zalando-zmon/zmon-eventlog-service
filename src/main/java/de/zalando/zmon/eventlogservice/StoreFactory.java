@@ -32,7 +32,7 @@ public class StoreFactory {
     @Value("${postgresql.port:5432}")
     int postgresqlPort;
 
-    @Value("${postgresql.database:zmon_local_db}")
+    @Value("${postgresql.database:local_zmon_db}")
     String postgresqlDatabase;
 
     @Value("${postgresql.user:postgres}")
