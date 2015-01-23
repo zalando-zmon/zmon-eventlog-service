@@ -1,5 +1,7 @@
 package de.zalando.zmon.eventlogservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +15,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StoreFactory {
 
-    @Value(value="${cassandra.host:null}")
+    private static final Logger LOG = LoggerFactory.getLogger(StoreFactory.class);
+
+    @Value(value="${cassandra.host:}")
     String cassandraHost;
 
     @Value("${cassandra.port:0}")
@@ -42,7 +46,7 @@ public class StoreFactory {
 
     @Bean
     EventStore getStore() {
-        if(cassandraHost!=null) {
+        if(cassandraHost.equals("")) {
             return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword, postgresqlSchema);
         }
         else {
