@@ -88,7 +88,7 @@ public class PostgresqlStore implements EventStore {
             b.append("'");
 
             if(null != types && types.size()>0) {
-                b.append(" AND ");
+                b.append(" AND e_type_id IN (");
                 boolean first = true;
                 for (Integer t : types) {
                     if(!first) {
@@ -97,6 +97,7 @@ public class PostgresqlStore implements EventStore {
                     first=false;
                     b.append(t.toString());
                 }
+                b.append(")");
             }
 
             ResultSet rs = st.executeQuery(b.toString());
