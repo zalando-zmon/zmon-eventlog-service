@@ -92,7 +92,7 @@ public class PostgresqlStore implements EventStore {
             List<Event> events = new ArrayList<>();
             while(rs.next()) {
                 Event e = new Event();
-                e.setTime(rs.getTime(2));
+                e.setTime(new java.util.Date(rs.getTimestamp(2).getTime()));
                 e.setTypeId(rs.getInt(1));
                 e.setTypeName(rs.getString(5));
 
