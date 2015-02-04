@@ -87,6 +87,18 @@ public class PostgresqlStore implements EventStore {
             Utils.appendEscapedLiteral(b,"{\""+key+"\":\""+value+"\"}", true);
             b.append("'");
 
+            if(null != types && types.size()>0) {
+                b.append(" AND ");
+                boolean first = true;
+                for (Integer t : types) {
+                    if(!first) {
+                        b.append(",");
+                    }
+                    first=false;
+                    b.append(t.toString());
+                }
+            }
+
             ResultSet rs = st.executeQuery(b.toString());
 
             List<Event> events = new ArrayList<>();
