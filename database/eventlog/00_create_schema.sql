@@ -1,22 +1,22 @@
-CREATE SCHEMA zmon_events;
+CREATE SCHEMA zmon_eventlog;
 
-CREATE TABLE zmon_events.event_types(
+CREATE TABLE zmon_eventlog.event_types(
   et_id serial,
   et_name text,
   PRIMARY KEY (et_id)
 );
 
-CREATE TABLE zmon_events.events(
+CREATE TABLE zmon_eventlog.events(
   e_type_id int,
   e_created timestamp,
   e_instance_id int,
   e_data jsonb
 );
 
-CREATE INDEX ON zmon_events.events USING gin (e_data);
-CREATE INDEX ON zmon_events.events (e_created , e_type_id);
+CREATE INDEX ON zmon_eventlog.events USING gin (e_data);
+CREATE INDEX ON zmon_eventlog.events (e_created , e_type_id);
 
-INSERT INTO zmon_events.event_types VALUES (213263,'GROUP_MODIFIED'),
+INSERT INTO zmon_eventlog.event_types VALUES (213263,'GROUP_MODIFIED'),
                                              (212994,'ALERT_ENDED'),
                                              (212993,'ALERT_STARTED'),
                                              (212996,'ALERT_ENTITY_ENDED'),
