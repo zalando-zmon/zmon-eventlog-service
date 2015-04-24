@@ -29,7 +29,6 @@ public class EventlogController {
 
     @RequestMapping(value="/", method=RequestMethod.PUT, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
-        LOG.info("{}", events);
         for(Event e:  events) {
             if(e.getAttributes().containsKey("alertId")) {
                 storage.putEvent(e, "alertId");
