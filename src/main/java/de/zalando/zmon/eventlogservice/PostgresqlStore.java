@@ -39,7 +39,7 @@ public class PostgresqlStore implements EventStore {
         ds = new HikariDataSource(conf);
 
         queryInsert = "INSERT INTO "+schema+".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
-        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM "+schema+".events, zmon_events.event_types WHERE et_id = e_type_id AND e_data @> '";
+        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM "+schema+".events, "+schema+".event_types WHERE et_id = e_type_id AND e_data @> '";
 
     }
 
