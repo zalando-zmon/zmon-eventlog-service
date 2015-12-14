@@ -1,4 +1,4 @@
-FROM zalando/openjdk:8u40-b09-2
+FROM registry.opensource.zalan.do/stups/openjdk:8u66-b17-1-8
 
 RUN mkdir /app
 
