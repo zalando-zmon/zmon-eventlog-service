@@ -8,6 +8,8 @@ psql -d eventlog -f database/eventlog/00_create_schema.sql
 .. code-block:: bash
 
     $ ./mvnw clean install
+    $ scm-source -f target/scm-source.json
+    $ docker build -t zmon-eventlog-service .
 
 Run with PostgreSQL:
 POSTGRESQL_HOST=localhost POSTGRESQL_PORT=5432 POSTGRESQL_DATABASE=test POSTGRESQL_USER= POSTGRESQL_PASSWORD= java -jar target/zmon-eventlog-service-1.0-SNAPSHOT.jar
