@@ -2,19 +2,21 @@ package de.zalando.zmon.eventlogservice;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
 import org.postgresql.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,12 +34,14 @@ public class PostgresqlStore implements EventStore {
     private final static Logger LOG = LoggerFactory.getLogger(PostgresqlStore.class);
 
     private final DataSource dataSource;
+    private final JdbcTemplate jdbc;
     private HikariDataSource ds;
     private final String queryGet;
     private final String queryInsert;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    @Deprecated
     public PostgresqlStore(String host, int port, String database, String user, String password, String schema) {
         HikariConfig conf = new HikariConfig();
         conf.setJdbcUrl("jdbc:postgresql://" + host + ":" + port + "/" + database);
@@ -46,7 +50,8 @@ public class PostgresqlStore implements EventStore {
         conf.setMaximumPoolSize(12);
         ds = new HikariDataSource(conf);
 
-        dataSource = null;
+        this.dataSource = null;
+        this.jdbc = null;
 
         queryInsert = "INSERT INTO " + schema
                 + ".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
@@ -57,40 +62,58 @@ public class PostgresqlStore implements EventStore {
 
     public PostgresqlStore(DataSource dataSource, String schema) {
         this.dataSource = dataSource;
-
+        this.jdbc = new JdbcTemplate(this.dataSource);
         queryInsert = "INSERT INTO " + schema
                 + ".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
         queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM " + schema + ".events, " + schema
                 + ".event_types WHERE et_id = e_type_id AND e_data @> '";
     }
 
+    @Async
     @Override
     public void putEvent(Event event, String key) {
-        Connection conn = null;
+        // remove boilerplate resource-handling
+        Optional<String> attributes = writeAttributes(event);
+        if (attributes.isPresent()) {
+            jdbc.update(queryInsert, event.getTypeId(), new java.sql.Timestamp(event.getTime().getTime()), 0,
+                    attributes.get());
+        }
+        //
+        // Connection conn = null;
+        //
+        // try {
+        // conn = dataSource.getConnection();
+        // PreparedStatement st = conn.prepareStatement(queryInsert);
+        // st.setInt(1, event.getTypeId());
+        // st.setTimestamp(2, new
+        // java.sql.Timestamp(event.getTime().getTime()));
+        // st.setInt(3, 0);
+        // st.setString(4, mapper.writeValueAsString(event.getAttributes()));
+        // st.execute();
+        //
+        // } catch (JsonProcessingException e) {
+        // LOG.error("Failed to serialize map", e);
+        // } catch (SQLException ex) {
+        // LOG.error("", ex);
+        // } finally {
+        // try {
+        // if (conn != null) {
+        // conn.close();
+        // }
+        // } catch (SQLException e) {
+        // e.printStackTrace();
+        // }
+        // }
 
+    }
+
+    protected Optional<String> writeAttributes(Event event) {
         try {
-            conn = dataSource.getConnection();
-            PreparedStatement st = conn.prepareStatement(queryInsert);
-            st.setInt(1, event.getTypeId());
-            st.setTimestamp(2, new java.sql.Timestamp(event.getTime().getTime()));
-            st.setInt(3, 0);
-            st.setString(4, mapper.writeValueAsString(event.getAttributes()));
-            st.execute();
-
+            return Optional.ofNullable(mapper.writeValueAsString(event.getAttributes()));
         } catch (JsonProcessingException e) {
             LOG.error("Failed to serialize map", e);
-        } catch (SQLException ex) {
-            LOG.error("", ex);
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            return Optional.empty();
         }
-
     }
 
     @Override
