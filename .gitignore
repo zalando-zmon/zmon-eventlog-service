@@ -12,3 +12,9 @@ eventlog.layout
 atlassian-ide-plugin.xml
 .venv
 target/
+
+.classpath
+.project
+.settings
+
+
