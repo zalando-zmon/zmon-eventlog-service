@@ -35,7 +35,7 @@ public class EventlogPostgresIT {
     public SpringMethodRule methodRule = new SpringMethodRule();
 
     @ClassRule
-    public static final PostgreSqlRule postgres = new PostgreSqlRule();
+    public static final PostgreSqlRule postgres = new PostgreSqlRule(10432);
 
     @ClassRule
     public static final SpringClassRule clazzRule = new SpringClassRule();
