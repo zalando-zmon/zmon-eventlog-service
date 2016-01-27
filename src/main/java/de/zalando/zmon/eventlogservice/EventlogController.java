@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class EventlogController {
+class EventlogController {
 
     private final EventStore storage;
 
     @Autowired
-    public EventlogController(EventStore eventStore) {
+    EventlogController(EventStore eventStore) {
         Assert.notNull(eventStore, "'EventStore' should never be null");
         this.storage = eventStore;
     }

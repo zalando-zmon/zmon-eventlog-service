@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class EventLogApplication {
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(EventlogController.class, args);
+        SpringApplication.run(EventLogApplication.class, args);
     }
 
 }

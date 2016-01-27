@@ -1,17 +1,18 @@
 package de.zalando.zmon.eventlogservice;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.util.Lists;
+import org.assertj.core.util.Maps;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -47,30 +48,26 @@ public class EventlogPostgresIT {
     public void run() throws InterruptedException {
         RestTemplate rest = new RestTemplate();
 
-        List<Event> eventList = buildEventList();
+        List<Event> eventList = Fixtures.buildEventList();
         RequestEntity<List<Event>> request = RequestEntity.put(URI.create("http://localhost:" + port + "/"))
                 .contentType(MediaType.APPLICATION_JSON).body(eventList);
 
         ResponseEntity<String> response = rest.exchange(request, String.class);
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-    }
+        Map<String, Object> uriVariables = Maps.newHashMap();
+        uriVariables.put("types", "");
+        uriVariables.put("key", "alertId");
+        uriVariables.put("value", "142");
 
-    private List<Event> buildEventList() {
-        List<Event> result = Lists.newArrayList();
+        ResponseEntity<String> response2 = rest.exchange(
+                "http://localhost:" + port + "/?types={types}&key={key}&value={value}", HttpMethod.GET, null,
+                String.class, uriVariables);
 
-        for (int i = 0; i < 10; i++) {
-            Event e = new Event();
-            e.setTime(new Date());
-            e.setFlowId("FLOW_" + i);
-            e.setTypeId(1234);
-            e.setTypeName("TEST_EVENT_" + i);
-            e.setAttribute("KEY1", "VALUE1");
-            e.setAttribute("KEY2", "VALUE2");
-            e.setAttribute("alertId", "142");
-            result.add(e);
-        }
-        return result;
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        System.out.println(response2.getBody());
+
     }
 
 }
