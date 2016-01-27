@@ -1,5 +1,21 @@
 package de.zalando.zmon.eventlogservice;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.postgresql.core.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -7,15 +23,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.postgresql.core.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jmussler on 1/22/15.
@@ -24,7 +31,8 @@ public class PostgresqlStore implements EventStore {
 
     private final static Logger LOG = LoggerFactory.getLogger(PostgresqlStore.class);
 
-    private final HikariDataSource ds;
+    private final DataSource dataSource;
+    private HikariDataSource ds;
     private final String queryGet;
     private final String queryInsert;
 
@@ -38,9 +46,22 @@ public class PostgresqlStore implements EventStore {
         conf.setMaximumPoolSize(12);
         ds = new HikariDataSource(conf);
 
-        queryInsert = "INSERT INTO "+schema+".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
-        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM "+schema+".events, "+schema+".event_types WHERE et_id = e_type_id AND e_data @> '";
+        dataSource = null;
 
+        queryInsert = "INSERT INTO " + schema
+                + ".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
+        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM " + schema + ".events, " + schema
+                + ".event_types WHERE et_id = e_type_id AND e_data @> '";
+
+    }
+
+    public PostgresqlStore(DataSource dataSource, String schema) {
+        this.dataSource = dataSource;
+
+        queryInsert = "INSERT INTO " + schema
+                + ".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
+        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM " + schema + ".events, " + schema
+                + ".event_types WHERE et_id = e_type_id AND e_data @> '";
     }
 
     @Override
@@ -48,7 +69,7 @@ public class PostgresqlStore implements EventStore {
         Connection conn = null;
 
         try {
-            conn = ds.getConnection();
+            conn = dataSource.getConnection();
             PreparedStatement st = conn.prepareStatement(queryInsert);
             st.setInt(1, event.getTypeId());
             st.setTimestamp(2, new java.sql.Timestamp(event.getTime().getTime()));
@@ -58,11 +79,9 @@ public class PostgresqlStore implements EventStore {
 
         } catch (JsonProcessingException e) {
             LOG.error("Failed to serialize map", e);
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             LOG.error("", ex);
-        }
-        finally {
+        } finally {
             try {
                 if (conn != null) {
                     conn.close();
@@ -79,22 +98,22 @@ public class PostgresqlStore implements EventStore {
         Connection conn = null;
 
         try {
-            conn = ds.getConnection();
+            conn = dataSource.getConnection();
 
             Statement st = conn.createStatement();
             StringBuffer b = new StringBuffer();
             b.append(queryGet);
-            Utils.appendEscapedLiteral(b,"{\""+key+"\":\""+value+"\"}", true);
+            Utils.appendEscapedLiteral(b, "{\"" + key + "\":\"" + value + "\"}", true);
             b.append("'");
 
-            if(null != types && types.size()>0) {
+            if (null != types && types.size() > 0) {
                 b.append(" AND e_type_id IN (");
                 boolean first = true;
                 for (Integer t : types) {
-                    if(!first) {
+                    if (!first) {
                         b.append(",");
                     }
-                    first=false;
+                    first = false;
                     b.append(t.toString());
                 }
                 b.append(")");
@@ -103,19 +122,19 @@ public class PostgresqlStore implements EventStore {
             ResultSet rs = st.executeQuery(b.toString());
 
             List<Event> events = new ArrayList<>();
-            while(rs.next()) {
+            while (rs.next()) {
                 Event e = new Event();
                 e.setTime(new java.util.Date(rs.getTimestamp(2).getTime()));
                 e.setTypeId(rs.getInt(1));
                 e.setTypeName(rs.getString(5));
 
-                Map<String, String> data = mapper.readValue(rs.getString(4), new TypeReference<Map<String,String>>(){});
+                Map<String, String> data = mapper.readValue(rs.getString(4), new TypeReference<Map<String, String>>() {
+                });
                 e.setAttributes(data);
                 events.add(e);
             }
             return events;
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             LOG.error("", ex);
         } catch (JsonMappingException ex) {
             LOG.error("", ex);

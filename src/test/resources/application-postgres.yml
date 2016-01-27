@@ -1,0 +1,15 @@
+postgresql:
+  password: postgres
+  database: test
+
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/test
+    driver-class-name: org.postgresql.Driver
+
+flyway:
+  enabled: true
+  schemas:
+    - zmon_eventlog
