@@ -12,6 +12,7 @@ public class Event {
     private int typeId;
     private String typeName;
     private Map<String, String> attributes = new LinkedHashMap<>();
+    // TODO, will this be stored in DB?
     private String flowId;
 
     public Map<String, String> getAttributes() {
@@ -61,12 +62,7 @@ public class Event {
 
     @Override
     public String toString() {
-        return "Event{" +
-                "time=" + time +
-                ", typeId=" + typeId +
-                ", typeName='" + typeName + '\'' +
-                ", attributes=" + attributes +
-                ", flowId='" + flowId + '\'' +
-                '}';
+        return "Event{" + "time=" + time + ", typeId=" + typeId + ", typeName='" + typeName + '\'' + ", attributes="
+                + attributes + ", flowId='" + flowId + '\'' + '}';
     }
 }

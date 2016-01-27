@@ -14,7 +14,7 @@ public class Fixtures {
             Event e = new Event();
             e.setTime(new Date());
             e.setFlowId("FLOW_" + i);
-            e.setTypeId(1234);
+            e.setTypeId(213263);
             e.setTypeName("TEST_EVENT_" + i);
             // e.setAttribute("KEY1", "VALUE1");
             // e.setAttribute("KEY2", "VALUE2");

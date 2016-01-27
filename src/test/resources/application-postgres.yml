@@ -13,3 +13,7 @@ flyway:
   enabled: true
   schemas:
     - zmon_eventlog
+
+logging:
+  level:
+    de.zalando.zmon: DEBUG 
