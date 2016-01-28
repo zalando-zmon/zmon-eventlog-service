@@ -75,7 +75,7 @@ public class PostgresqlStore implements EventStore {
     @Override
     public void putEvent(Event event, String key) {
         // remove boilerplate resource-handling
-        writeAttributes(event).ifPresent(attr -> this.writeEvent(event, key, attr));
+        writeAttributes(event).ifPresent(attr -> this.writeEvent(event, attr));
         // attributes.ifPresent(attr -> this.writeEvent(event, key, attr));
         // if (attributes.isPresent()) {
         // jdbc.update(queryInsert, event.getTypeId(), new
@@ -111,7 +111,7 @@ public class PostgresqlStore implements EventStore {
 
     }
 
-    protected void writeEvent(Event event, String key, String attributes) {
+    protected void writeEvent(Event event, String attributes) {
         LOG.debug("SQL : {}, PARAMS : {}", queryInsert, new String[] { event.getTypeId() + "",
                 new java.sql.Timestamp(event.getTime().getTime()).toString(), attributes });
         jdbc.update(queryInsert, event.getTypeId(), new java.sql.Timestamp(event.getTime().getTime()), 0, attributes);
