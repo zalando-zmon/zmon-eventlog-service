@@ -1,6 +1,8 @@
 package de.zalando.zmon.eventlogservice;
 
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -30,7 +32,10 @@ class EventlogController {
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
         if (storage.isBatchSupported()) {
-            storage.storeInBatch(events);
+            // in postgres we do not really care about attributes,right?
+            // but I do the filtering
+            List<Event> filtered = events.stream().filter(EVENT_FILTER).collect(Collectors.toList());
+            storage.storeInBatch(filtered);
         } else {
             for (Event e : events) {
                 if (e.getAttributes().containsKey("alertId")) {
@@ -42,4 +47,22 @@ class EventlogController {
         }
     }
 
+    private static final Predicate<Event> EVENT_FILTER = new EventFilterByAttribute("alertId")
+            .or(new EventFilterByAttribute("checkId"));
+
+    static class EventFilterByAttribute implements Predicate<Event> {
+
+        private final String attributesKey;
+
+        public EventFilterByAttribute(String attributeKey) {
+            Assert.hasText(attributeKey, "'attributeKey' should never be null or empty");
+            this.attributesKey = attributeKey;
+        }
+
+        @Override
+        public boolean test(Event t) {
+            return t.getAttributes().containsKey(attributesKey);
+        }
+
+    }
 }
