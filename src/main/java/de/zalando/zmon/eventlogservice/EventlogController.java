@@ -29,11 +29,15 @@ class EventlogController {
 
     @RequestMapping(value = "/", method = RequestMethod.PUT, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
-        for (Event e : events) {
-            if (e.getAttributes().containsKey("alertId")) {
-                storage.putEvent(e, "alertId");
-            } else if (e.getAttributes().containsKey("checkId")) {
-                storage.putEvent(e, "checkId");
+        if (storage.isBatchSupported()) {
+            storage.storeInBatch(events);
+        } else {
+            for (Event e : events) {
+                if (e.getAttributes().containsKey("alertId")) {
+                    storage.putEvent(e, "alertId");
+                } else if (e.getAttributes().containsKey("checkId")) {
+                    storage.putEvent(e, "checkId");
+                }
             }
         }
     }

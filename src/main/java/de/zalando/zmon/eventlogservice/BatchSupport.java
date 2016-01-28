@@ -10,17 +10,17 @@ import com.google.common.collect.Iterables;
  * @author jbellmann
  *
  */
-public interface BatchSupport {
+public interface BatchSupport<T> {
 
     default boolean isBatchSupported() {
         return false;
     }
 
-    default <T> void storeInBatch(Iterable<T> toStore) {
+    default void storeInBatch(Iterable<T> toStore) {
         throw new RuntimeException("Not implemented yet.");
     }
 
-    default <T> Iterable<List<T>> partition(Iterable<T> toPartition) {
+    default Iterable<List<T>> partition(Iterable<T> toPartition) {
         return Iterables.partition(toPartition, getPartitionSize());
     }
 

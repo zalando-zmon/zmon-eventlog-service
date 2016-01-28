@@ -7,4 +7,4 @@ ENV SERVER_PORT 8081
 
 EXPOSE 8081
 
-CMD java $JAVA_OPTS $(java-dynamic-memory-opts) -jar /zmon-eventlog-service.jar
+CMD java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom $(java-dynamic-memory-opts) -jar /zmon-eventlog-service.jar
