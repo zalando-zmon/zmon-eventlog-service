@@ -1,0 +1,7 @@
+endpoints:
+  enabled: false
+  health:
+    enabled: true
+    sensitive: true
+  metrics:
+    enabled: true
