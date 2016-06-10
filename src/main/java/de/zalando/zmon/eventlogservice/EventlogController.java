@@ -1,5 +1,6 @@
 package de.zalando.zmon.eventlogservice;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
@@ -26,6 +27,14 @@ public class EventlogController {
     @RequestMapping(value="/", method={RequestMethod.PUT, RequestMethod.POST}, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
         for(Event e:  events) {
+            ObjectNode attributes = (ObjectNode) e.getAttributes();
+            if(attributes.has("alertId")) {
+                attributes.put("alertId", "" + attributes.get("alertId"));
+            }
+            if(attributes.has("checkId")) {
+                attributes.put("checkId", "" + attributes.get("checkId"));
+            }
+
             if(e.getAttributes().has("alertId")) {
                 storage.putEvent(e, "alertId");
             }
