@@ -3,9 +3,6 @@ package de.zalando.zmon.eventlogservice;
 import com.datastax.driver.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,10 +85,10 @@ public class CassandraStore implements EventStore {
     public void putEvent(Event event, String key) {
         BoundStatement bst = null;
         if("alertId".equals(key)) {
-            bst = putByAlertId.bind(Integer.parseInt(event.getAttributes().get("alertId")), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
+            bst = putByAlertId.bind(event.getAttributes().get("alertId").asInt(), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
         }
         else if ("checkId".equals(key)) {
-            bst = putByCheckId.bind(Integer.parseInt(event.getAttributes().get("checkId")), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
+            bst = putByCheckId.bind(event.getAttributes().get("checkId").asInt(), event.getTime(), event.getTypeId(), event.getAttributes().get("entity"), 0, event.getAttributes());
         }
 
         if(bst!=null) {
@@ -126,7 +123,7 @@ public class CassandraStore implements EventStore {
             Event e = new Event();
             e.setTypeId(r.getInt("type"));
             e.setTime(r.getDate("created"));
-            e.setAttributes(r.getMap("data", String.class, String.class));
+            // e.setAttributes(r.getMap("data", String.class, String.class));
             l.add(e);
         }
 

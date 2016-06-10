@@ -1,7 +1,5 @@
 package de.zalando.zmon.eventlogservice;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
@@ -17,8 +15,6 @@ import java.util.List;
 @ComponentScan
 public class EventlogController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(EventlogController.class);
-
     @Autowired
     EventStore storage;
 
@@ -27,13 +23,13 @@ public class EventlogController {
         return storage.getEvents(key, value, types, 100);
     }
 
-    @RequestMapping(value="/", method=RequestMethod.PUT, consumes = "application/json")
+    @RequestMapping(value="/", method={RequestMethod.PUT, RequestMethod.POST}, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
         for(Event e:  events) {
-            if(e.getAttributes().containsKey("alertId")) {
+            if(e.getAttributes().has("alertId")) {
                 storage.putEvent(e, "alertId");
             }
-            else if(e.getAttributes().containsKey("checkId")) {
+            else if(e.getAttributes().has("checkId")) {
                 storage.putEvent(e, "checkId");
             }
         }
