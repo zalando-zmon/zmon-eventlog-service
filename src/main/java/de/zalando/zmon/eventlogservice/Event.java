@@ -3,20 +3,16 @@ package de.zalando.zmon.eventlogservice;
 /**
  * Created by jmussler on 1/13/15.
  */
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class Event {
     private Date time;
     private int typeId;
     private String typeName;
-    private Map<String, String> attributes = new LinkedHashMap<>();
+    private JsonNode attributes = null;
     private String flowId;
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
 
     public void setFlowId(final String f) {
         flowId = f;
@@ -26,13 +22,12 @@ public class Event {
         return flowId;
     }
 
-    public void setAttributes(final Map<String, String> attributes) {
+    public void setAttributes(JsonNode attributes) {
         this.attributes = attributes;
     }
 
-    public Event setAttribute(final String key, final String value) {
-        attributes.put(key, value);
-        return this;
+    public JsonNode getAttributes() {
+        return attributes;
     }
 
     public Date getTime() {

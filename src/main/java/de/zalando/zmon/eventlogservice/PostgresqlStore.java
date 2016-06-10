@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -109,8 +110,8 @@ public class PostgresqlStore implements EventStore {
                 e.setTypeId(rs.getInt(1));
                 e.setTypeName(rs.getString(5));
 
-                Map<String, String> data = mapper.readValue(rs.getString(4), new TypeReference<Map<String,String>>(){});
-                e.setAttributes(data);
+                JsonNode node = mapper.readTree(rs.getString(4));
+                e.setAttributes(node);
                 events.add(e);
             }
             return events;
