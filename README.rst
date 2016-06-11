@@ -2,8 +2,14 @@
 ZMON EventLog Service
 =====================
 
-Setup:
-psql -d eventlog -f database/eventlog/00_create_schema.sql
+Create database schema:
+
+.. code-block:: bash
+
+    psql -d eventlog -f database/eventlog/00_create_schema.sql
+
+
+Build docker image:
 
 .. code-block:: bash
 
