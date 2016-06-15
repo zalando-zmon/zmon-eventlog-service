@@ -24,7 +24,7 @@ public class EventlogController {
         return storage.getEvents(key, value, types, 100);
     }
 
-    @RequestMapping(value="/", method={RequestMethod.PUT, RequestMethod.POST}, consumes = "application/json")
+    @RequestMapping(value={"/","/api/v1"}, method={RequestMethod.PUT, RequestMethod.POST}, consumes = "application/json")
     void putEvents(@RequestBody List<Event> events) {
         for(Event e:  events) {
             ObjectNode attributes = (ObjectNode) e.getAttributes();
