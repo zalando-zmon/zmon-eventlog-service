@@ -6,7 +6,8 @@ Create database schema:
 
 .. code-block:: bash
 
-    psql -d eventlog -f database/eventlog/00_create_schema.sql
+    docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres
+    psql -h localhost -U postgres -d local_eventlog_db -f database/eventlog/00_create_schema.sql
 
 
 Build docker image:
@@ -21,18 +22,13 @@ Run with PostgreSQL:
 
 .. code-block:: bash
 
-    POSTGRESQL_HOST=localhost \
-    POSTGRESQL_PORT=5432 \
-    POSTGRESQL_DATABASE=test \
-    POSTGRESQL_USER= \
-    POSTGRESQL_PASSWORD= \
     java -jar target/zmon-eventlog-service-1.0-SNAPSHOT.jar
 
 Create Event:
 
 .. code-block:: bash
 
-    curl -X PUT http://localhost:8080/ \
+    curl -X POST http://localhost:8080/events \
          -d "[{\"typeId\":212993, \"time\":\"2014-01-01T20:00:00.000\",\"attributes\":{\"alertId\":1,\"entity\":\"elsn01:5827\"}}]" \
          -H "Content-Type: application/json"
 
@@ -41,4 +37,4 @@ Read Event:
 
 .. code-block:: bash
 
-    curl 'http://localhost:8080/?key=alertId&value=1&types=212993'
+    curl 'http://localhost:8080/events?types=212993&key=alertId&value=1&from=0'
