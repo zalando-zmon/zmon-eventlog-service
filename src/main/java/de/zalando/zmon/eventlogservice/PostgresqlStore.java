@@ -37,8 +37,8 @@ public class PostgresqlStore implements EventStore {
         conf.setMaximumPoolSize(12);
         ds = new HikariDataSource(conf);
 
-        queryInsert = "INSERT INTO " + schema + ".events(e_type_id, e_created, e_instance_id, e_data) VALUES(?,?,?,?::jsonb)";
-        queryGet = "SELECT e_type_id, e_created, e_instance_id, e_data, et_name FROM " + schema + ".events, " + schema + ".event_types WHERE et_id = e_type_id AND e_data @> '";
+        queryInsert = "INSERT INTO " + schema + ".events(e_type_id, e_created, e_data) VALUES(?,?,?::jsonb)";
+        queryGet = "SELECT e_type_id, e_created, e_data, et_name FROM " + schema + ".events, " + schema + ".event_types WHERE et_id = e_type_id AND e_data @> '";
 
     }
 
@@ -49,8 +49,7 @@ public class PostgresqlStore implements EventStore {
             PreparedStatement st = conn.prepareStatement(queryInsert);
             st.setInt(1, event.getTypeId());
             st.setTimestamp(2, new java.sql.Timestamp(event.getTime().getTime()));
-            st.setInt(3, 0);
-            st.setString(4, mapper.writeValueAsString(event.getAttributes()));
+            st.setString(3, mapper.writeValueAsString(event.getAttributes()));
             st.execute();
 
         } catch (JsonProcessingException e) {
@@ -92,9 +91,9 @@ public class PostgresqlStore implements EventStore {
                 Event e = new Event();
                 e.setTime(new java.util.Date(rs.getTimestamp(2).getTime()));
                 e.setTypeId(rs.getInt(1));
-                e.setTypeName(rs.getString(5));
+                e.setTypeName(rs.getString(4));
 
-                JsonNode node = mapper.readTree(rs.getString(4));
+                JsonNode node = mapper.readTree(rs.getString(3));
                 e.setAttributes(node);
                 events.add(e);
             }

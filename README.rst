@@ -7,6 +7,7 @@ Create database schema:
 .. code-block:: bash
 
     docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres
+    psql -h localhost -U postgres -c 'CREATE DATABASE local_eventlog_db;'
     psql -h localhost -U postgres -d local_eventlog_db -f database/eventlog/00_create_schema.sql
 
 
