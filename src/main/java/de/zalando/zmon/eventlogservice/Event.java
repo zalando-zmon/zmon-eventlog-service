@@ -12,15 +12,6 @@ public class Event {
     private int typeId;
     private String typeName;
     private JsonNode attributes = null;
-    private String flowId;
-
-    public void setFlowId(final String f) {
-        flowId = f;
-    }
-
-    public String getFlowId() {
-        return flowId;
-    }
 
     public void setAttributes(JsonNode attributes) {
         this.attributes = attributes;
@@ -61,7 +52,6 @@ public class Event {
                 ", typeId=" + typeId +
                 ", typeName='" + typeName + '\'' +
                 ", attributes=" + attributes +
-                ", flowId='" + flowId + '\'' +
                 '}';
     }
 }

@@ -17,28 +17,19 @@ public class StoreFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(StoreFactory.class);
 
-    @Value(value="${cassandra.host:}")
-    String cassandraHost;
-
-    @Value("${cassandra.port:0}")
-    int cassandraPort;
-
-    @Value("${cassandra.keyspace:null}")
-    String cassandraKeyspace;
-
     @Value("${postgresql.host:localhost}")
     String postgresqlHost;
 
     @Value("${postgresql.port:5432}")
     int postgresqlPort;
 
-    @Value("${postgresql.database:local_zmon_db}")
+    @Value("${postgresql.database:local_eventlog_db}")
     String postgresqlDatabase;
 
     @Value("${postgresql.user:postgres}")
     String postgresqlUser;
 
-    @Value("${postgresql.password}")
+    @Value("${postgresql.password:postgres}")
     String postgresqlPassword;
 
     @Value("${postgresql.schema:zmon_eventlog}")
@@ -46,11 +37,6 @@ public class StoreFactory {
 
     @Bean
     EventStore getStore() {
-        if(cassandraHost.equals("")) {
-            return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword, postgresqlSchema);
-        }
-        else {
-            return new CassandraStore(cassandraHost, cassandraPort, cassandraKeyspace);
-        }
+        return new PostgresqlStore(postgresqlHost, postgresqlPort, postgresqlDatabase, postgresqlUser, postgresqlPassword, postgresqlSchema);
     }
 }
