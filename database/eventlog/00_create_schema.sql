@@ -9,7 +9,6 @@ CREATE TABLE zmon_eventlog.event_types(
 CREATE TABLE zmon_eventlog.events(
   e_type_id int,
   e_created timestamp,
-  e_instance_id int,
   e_data jsonb
 );
 
