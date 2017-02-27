@@ -5,3 +5,9 @@ endpoints:
     sensitive: true
   metrics:
     enabled: true
+
+flyway:
+  schemas:
+    - "zmon_eventlog"
+  baseline-on-migrate: true
+  baseline-version: 1

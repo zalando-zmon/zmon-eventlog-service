@@ -39,6 +39,11 @@
            <artifactId>zmon-actuator</artifactId>
            <version>0.9.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>4.1.1</version>
+        </dependency>
     </dependencies>
 
     <build>
