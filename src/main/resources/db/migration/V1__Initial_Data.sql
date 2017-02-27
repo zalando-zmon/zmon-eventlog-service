@@ -1,4 +1,4 @@
-CREATE SCHEMA zmon_eventlog;
+CREATE SCHEMA IF NOT EXISTS zmon_eventlog;
 
 CREATE TABLE zmon_eventlog.event_types(
   et_id serial,
