@@ -12,8 +12,8 @@ CREATE TABLE zmon_eventlog.events(
   e_data jsonb
 );
 
-CREATE INDEX ON zmon_eventlog.events USING gin (e_data);
-CREATE INDEX ON zmon_eventlog.events (e_created , e_type_id);
+CREATE INDEX ON zmon_eventlog.events (((e_data->'checkId')::text), e_created);
+CREATE INDEX ON zmon_eventlog.events (((e_data->'alertId')::text), e_created);
 
 INSERT INTO zmon_eventlog.event_types VALUES (213263,'GROUP_MODIFIED'),
                                              (212994,'ALERT_ENDED'),
