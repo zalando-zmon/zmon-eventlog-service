@@ -38,7 +38,7 @@ public class PostgresqlStore implements EventStore {
         ds = new HikariDataSource(conf);
 
         queryInsert = "INSERT INTO " + schema + ".events(e_type_id, e_created, e_data) VALUES(?,?,?::jsonb)";
-        queryGet = "SELECT e_type_id, e_created, e_data, et_name FROM " + schema + ".events, " + schema + ".event_types WHERE et_id = e_type_id AND e_data @> '";
+        queryGet = "SELECT e_type_id, e_created, e_data, et_name FROM " + schema + ".events, " + schema + ".event_types WHERE et_id = e_type_id AND ";
 
     }
 
@@ -63,9 +63,23 @@ public class PostgresqlStore implements EventStore {
     public List<Event> getEvents(String key, String value, List<Integer> types, long from, long to, int limit) {
         try (Connection conn = ds.getConnection()) {
             Statement st = conn.createStatement();
-            StringBuffer b = new StringBuffer();
+            StringBuilder b = new StringBuilder();
             b.append(queryGet);
-            Utils.appendEscapedLiteral(b, "{\"" + key + "\":\"" + value + "\"}", true);
+            // Utils.appendEscapedLiteral(b, "{\"" + key + "\":\"" + value + "\"}", true);
+            if(key.equals("checkId")) {
+                b.append("(e_data->'checkId')::text = '\"");
+                Utils.escapeLiteral(b, value, true);
+                b.append("\"'");
+            }
+            else if(key.equals("alertId")) {
+                b.append("(e_data->'alertId')::text = '\"");
+                Utils.escapeLiteral(b, value, true);
+                b.append("\"'");
+            }
+            else {
+                return null;
+            }
+
             b.append("'");
 
             if (null != types && types.size() > 0) {
