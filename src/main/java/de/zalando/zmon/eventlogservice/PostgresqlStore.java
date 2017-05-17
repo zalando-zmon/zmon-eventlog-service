@@ -63,17 +63,17 @@ public class PostgresqlStore implements EventStore {
     public List<Event> getEvents(String key, String value, List<Integer> types, long from, long to, int limit) {
         try (Connection conn = ds.getConnection()) {
             Statement st = conn.createStatement();
-            StringBuffer b = new StringBuffer();
+            StringBuilder b = new StringBuilder();
             b.append(queryGet);
             // Utils.appendEscapedLiteral(b, "{\"" + key + "\":\"" + value + "\"}", true);
             if(key.equals("checkId")) {
                 b.append("(e_data->'checkId')::text = '\"");
-                Utils.appendEscapedLiteral(b, value, true);
+                Utils.escapeLiteral(b, value, true);
                 b.append("\"'");
             }
             else if(key.equals("alertId")) {
                 b.append("(e_data->'alertId')::text = '\"");
-                Utils.appendEscapedLiteral(b, value, true);
+                Utils.escapeLiteral(b, value, true);
                 b.append("\"'");
             }
             else {
