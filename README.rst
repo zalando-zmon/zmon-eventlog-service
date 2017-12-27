@@ -16,7 +16,6 @@ Build docker image:
 .. code-block:: bash
 
     $ ./mvnw clean install
-    $ scm-source -f target/scm-source.json
     $ docker build -t zmon-eventlog-service .
 
 Run with PostgreSQL:
