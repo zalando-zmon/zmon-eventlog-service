@@ -2,6 +2,11 @@
 ZMON EventLog Service
 =====================
 
+.. image:: https://img.shields.io/badge/OpenTracing-enabled-blue.svg
+    :target: http://opentracing.io
+    :alt: OpenTracing enabled
+
+
 Create database schema:
 
 .. code-block:: bash
