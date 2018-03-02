@@ -80,8 +80,6 @@ public class PostgresqlStore implements EventStore {
                 return null;
             }
 
-            b.append("'");
-
             if (null != types && types.size() > 0) {
                 b.append(" AND e_type_id IN (");
                 boolean first = true;
