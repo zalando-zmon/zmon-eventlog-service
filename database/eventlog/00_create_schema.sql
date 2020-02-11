@@ -38,4 +38,9 @@ INSERT INTO zmon_eventlog.event_types VALUES (213263,'GROUP_MODIFIED'),
                                              (213250,'DOWNTIME_REMOVED'),
                                              (213252,'ALERT_COMMENT_CREATED'),
                                              (213505,'CHECK_DEFINITION_IMPORT_FAILED'),
-                                             (213259,'ALERT_DEFINITION_DELETED');
+                                             (213259,'ALERT_DEFINITION_DELETED'),
+                                             -- Paging events
+                                             (213760,'PAGE_TRIGGERED'),       -- 0x34300
+                                             (213761,'PAGE_ACKNOWLEDGED'),    -- 0x34301
+                                             (213762,'PAGE_UNACKNOWLEDGED'),  -- 0x34302
+                                             (213763,'PAGE_RESOLVED');        -- 0x34303
